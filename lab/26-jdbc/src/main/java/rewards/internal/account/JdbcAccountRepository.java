@@ -3,6 +3,10 @@ package rewards.internal.account;
 import common.money.MonetaryAmount;
 import common.money.Percentage;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import rewards.internal.restaurant.Restaurant;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -14,26 +18,26 @@ import java.sql.SQLException;
  * Loads accounts from a data source using the JDBC API.
  */
 
-// TODO-10 (Optional) : Inject JdbcTemplate directly to this repository class
+// 10 (Optional) : Inject JdbcTemplate directly to this repository class
 // - Refactor the constructor to get the JdbcTemplate injected directly
 //   (instead of DataSource getting injected)
 // - Refactor RewardsConfig accordingly
 // - Refactor JdbcAccountRepositoryTests accordingly
 // - Run JdbcAccountRepositoryTests and verity it passes
 
-// TODO-05: Refactor this repository to use JdbcTemplate.
+// 05: Refactor this repository to use JdbcTemplate.
 // - Add a field of type JdbcTemplate.
 // - Refactor the code in the constructor to instantiate the JdbcTemplate
 //   object using the given DataSource object.
 public class JdbcAccountRepository implements AccountRepository {
 
-	private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
 
-	public JdbcAccountRepository(DataSource dataSource) {
-		this.dataSource = dataSource;
+	public JdbcAccountRepository(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
 	}
 
-	// TODO-07 (Optional): Refactor this method using JdbcTemplate and ResultSetExtractor
+	// 07 (Optional): Refactor this method using JdbcTemplate and ResultSetExtractor
 	// - Create a ResultSetExtractor object and pass it as an argument
 	//   to jdbcTemplate.query(..) method
 	// - Let the extractData() method of the ResultSetExtractor to call
@@ -46,8 +50,9 @@ public class JdbcAccountRepository implements AccountRepository {
 			"left outer join T_ACCOUNT_BENEFICIARY b " +
 			"on a.ID = b.ACCOUNT_ID " +
 			"where c.ACCOUNT_ID = a.ID and c.NUMBER = ?";
-		
-		Account account = null;
+
+		return jdbcTemplate.query(sql, this::mapAccount, creditCardNumber);
+		/*Account account = null;
 		Connection conn = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -81,18 +86,16 @@ public class JdbcAccountRepository implements AccountRepository {
 				} catch (SQLException ex) {
 				}
 			}
-		}
-		return account;
+		}*/
 	}
-
-	// TODO-06: Refactor this method to use JdbcTemplate.
+	// 06: Refactor this method to use JdbcTemplate.
 	// - Note that an account has multiple beneficiaries
 	//   and you are going to perform UPDATE operation using
 	//   JdbcTemplate for each of those beneficiaries
 	// - Rerun the JdbcAccountRepositoryTests and verify it passes
 	public void updateBeneficiaries(Account account) {
 		String sql = "update T_ACCOUNT_BENEFICIARY SET SAVINGS = ? where ACCOUNT_ID = ? and NAME = ?";
-		Connection conn = null;
+		/*Connection conn = null;
 		PreparedStatement ps = null;
 		try {
 			conn = dataSource.getConnection();
@@ -120,6 +123,9 @@ public class JdbcAccountRepository implements AccountRepository {
 				} catch (SQLException ex) {
 				}
 			}
+		}*/
+		for (Beneficiary beneficiary : account.getBeneficiaries()) {
+			jdbcTemplate.update(sql, beneficiary.getSavings().asBigDecimal(), account.getEntityId(), beneficiary.getName());
 		}
 	}
 
