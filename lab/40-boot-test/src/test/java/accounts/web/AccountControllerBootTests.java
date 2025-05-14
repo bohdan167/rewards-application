@@ -22,8 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 // TODO-07: Replace @ExtendWith(SpringExtension.class) with the following annotation
 // - @WebMvcTest(AccountController.class) // includes @ExtendWith(SpringExtension.class)
-//@ExtendWith(SpringExtension.class)
-@WebMvcTest(AccountController.class)
+//
 public class AccountControllerBootTests {
 
 	// TODO-08: Autowire MockMvc bean
